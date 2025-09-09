@@ -1,0 +1,48 @@
+body{
+    background-color: #111;
+    color: white;
+}
+   
+.navDiv {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;            
+  padding: 0 20px;                
+}
+
+.navDiv p {
+  margin: 0; 
+  font-weight: 100;
+}
+
+.navDiv ul {
+  list-style: none;  
+  display: flex;
+  gap: 20px;        
+  margin: 0;
+  padding: 0;
+}
+
+.navDiv a {
+  text-decoration: none;
+  color: white;
+  font-size: 20px;
+}
+.navDiv a p{
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: xx-large;
+}
+.mainbody {
+    margin-top: 100px;
+    margin-left: 80px;
+}
+.mainSec{
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;  
+    margin-right: 200px;
+    padding: 0 50px; 
+}
+.mrPhoto{
+    margin-top: 80px;
+}
