@@ -1,0 +1,6 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin:0; background:#111; color:#fff; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color:#d6f26a; }
+h1,h2,h3,h4,h5 { margin:0; font-weight:600; }
+img { max-width:100%; display:block; }

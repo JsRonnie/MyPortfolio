@@ -12,6 +12,19 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript
+      style="
+        color: #fff;
+        background: #900;
+        display: block;
+        padding: 8px;
+        font-family: monospace;
+      "
+      >Enable JavaScript to view this site.</noscript
+    >
+    <script>
+      console.log("[index.html] inline script executed before React");
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

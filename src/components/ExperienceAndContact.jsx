@@ -1,12 +1,10 @@
 export default function ExperienceAndContact() {
   return (
-    <div style={{ background: "#111", color: "#fff", fontFamily: "Inter, sans-serif", minHeight: "100vh" }}>
+    <div id="experience" style={{ background: "#111", color: "#fff", fontFamily: "Inter, sans-serif" }}>
       {/* Experience Section */}
-      <section style={{ display: "flex", padding: "4rem 2rem 2rem 2rem" }}>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: "3rem", fontWeight: "bold", letterSpacing: "2px" }}>MY EXPERIENCE</h1>
-        </div>
-        <div style={{ flex: 2 }}>
+      <section style={{ display: "flex", flexDirection: 'column', gap: '2rem', padding: "4rem 2rem 2rem 2rem", maxWidth: '1100px', margin: '0 auto' }}>
+        <h2 className="sectionTitle" style={{ fontSize: "3rem", fontWeight: "bold", letterSpacing: "2px", margin: 0 }}>MY EXPERIENCE</h2>
+        <div>
           <div style={{ marginBottom: "2rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ fontSize: "1.1rem", fontWeight: "500" }}>Front-End Student / React Learner</span>
@@ -27,12 +25,11 @@ export default function ExperienceAndContact() {
           </div>
         </div>
       </section>
-      <hr style={{ border: "none", borderTop: "1px solid #222", margin: "2rem 0" }} />
+      <hr style={{ border: "none", borderTop: "1px solid #222", margin: "2rem auto", maxWidth: '1100px' }} />
       {/* Contact Section */}
-      <section style={{ display: "flex", padding: "4rem 2rem 2rem 2rem" }}>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: "3rem", fontWeight: "bold", letterSpacing: "2px" }}>LET’S CONNECT</h1>
-          <p style={{ margin: "1rem 0 0.5rem 0", color: "#ccc" }}>
+      <section id="contact" style={{ display: "flex", flexDirection: 'column', gap: '1.5rem', padding: "2rem 2rem 4rem 2rem", maxWidth: '1100px', margin: '0 auto' }}>
+        <h2 className="sectionTitle" style={{ fontSize: "3rem", fontWeight: "bold", letterSpacing: "2px", margin: 0 }}>LET’S CONNECT</h2>
+          <p style={{ margin: "0.5rem 0 0.5rem 0", color: "#ccc" }}>
             Say hello at <a href="mailto:kian.bungao@gmail.com" style={{ color: "#fff", textDecoration: "underline" }}>kian.bungao@gmail.com</a>
           </p>
           <p style={{ color: "#ccc", marginBottom: "1.5rem" }}>
@@ -52,8 +49,7 @@ export default function ExperienceAndContact() {
               <svg width="24" height="24" fill="#d6f26a" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.334 3.608 1.308.975.974 1.246 2.242 1.308 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.334 2.633-1.308 3.608-.974.975-2.242 1.246-3.608 1.308-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.334-3.608-1.308-.975-.974-1.246-2.242-1.308-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.334-2.633 1.308-3.608.974-.975 2.242-1.246 3.608-1.308 1.266-.058 1.646-.07 4.85-.07zm0-2.163c-3.259 0-3.667.012-4.947.072-1.276.06-2.687.334-3.662 1.309-.975.975-1.249 2.386-1.309 3.662-.06 1.28-.072 1.688-.072 4.947s.012 3.667.072 4.947c.06 1.276.334 2.687 1.309 3.662.975.975 2.386 1.249 3.662 1.309 1.28.06 1.688.072 4.947.072s3.667-.012 4.947-.072c1.276-.06 2.687-.334 3.662-1.309.975-.975 1.249-2.386 1.309-3.662.06-1.28.072-1.688.072-4.947s-.012-3.667-.072-4.947c-.06-1.276-.334-2.687-1.309-3.662-.975-.975-2.386-1.249-3.662-1.309-1.28-.06-1.688-.072-4.947-.072zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zm0 10.162a3.999 3.999 0 1 1 0-7.998 3.999 3.999 0 0 1 0 7.998zm6.406-11.845a1.44 1.44 0 1 1-2.88 0 1.44 1.44 0 0 1 2.88 0z"/></svg>
             </a>
           </div>
-        </div>
-        <div style={{ flex: 2 }}>
+        <div>
           <form style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "500px" }}>
             <label>
               Name

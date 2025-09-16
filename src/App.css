@@ -46,3 +46,67 @@ body{
 .mrPhoto{
     margin-top: 80px;
 }
+
+/* Fixed nav adjustments */
+.navDiv {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  backdrop-filter: blur(8px);
+  background: rgba(17,17,17,0.75);
+  padding: 0.75rem 2rem;
+  z-index: 100;
+  border-bottom: 1px solid #222;
+}
+.navDiv .brand { font-weight:600; letter-spacing:.5px; text-decoration:none; color:#fff; }
+.navDiv ul { list-style:none; display:flex; gap:1.25rem; margin:0; padding:0; }
+.navDiv ul li a { text-decoration:none; color:#ddd; font-size:.9rem; letter-spacing:.5px; transition:color .2s; }
+.navDiv ul li a:hover, .navDiv ul li a:focus { color:#d6f26a; }
+
+/* Active navigation link styling */
+.navDiv ul li a.active-nav {
+  color: #d6f26a;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(214,242,106,0.55), 0 0 14px rgba(214,242,106,0.35);
+  position: relative;
+}
+.navDiv ul li a.active-nav::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg,#d6f26a,#b4d940);
+  box-shadow: 0 0 6px rgba(214,242,106,0.6);
+}
+
+/* Smooth scrolling */
+html { scroll-behavior: smooth; }
+section, #about, #experience, #contact { scroll-margin-top: 90px; }
+
+/* Section title utility */
+.sectionTitle { font-family: Inter, sans-serif; }
+
+/* Body top padding to offset fixed nav */
+body { padding-top: 76px; }
+
+@media (max-width: 760px) {
+  .navDiv ul { gap:.75rem; flex-wrap:wrap; }
+  body { padding-top: 110px; }
+}
+
+/* Utilities for new sections */
+.skills-grid li, .projects-grid article {
+  transition: transform .35s ease, box-shadow .4s ease;
+}
+
+.projects-grid article:hover {
+  transform: translateY(-6px);
+}
+
+@media (max-width: 880px) {
+  .mainSec { flex-direction: column; margin-right: 0; }
+  .mainbody { margin-left: 0; }
+}

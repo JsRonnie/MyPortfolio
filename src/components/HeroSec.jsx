@@ -3,27 +3,37 @@ import photo from "../assets/mrRonnie.jpg";
 export default function Herosec() {
   return (
     <section
+      id="home"
       className="mainSec"
       style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        minHeight: "80vh",
         background: "#111",
         color: "#fff",
         fontFamily: "Inter, sans-serif",
-        padding: "2rem 0",
+        padding: "3rem 1.5rem",
       }}
     >
+      <div
+        style={{
+          maxWidth: "1280px",
+          margin: "0 auto",
+          minHeight: "80vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "5rem",
+          flexWrap: "nowrap",
+          width: "100%",
+        }}
+      >
       <main
         className="mainbody"
         style={{
-          flex: 1,
-          marginLeft: "5vw",
+          flex: "0 0 520px",
+          maxWidth: "520px",
         }}
       >
         <h1
-          className="name"
+          className="name sectionTitle"
           style={{
             fontSize: "3rem",
             fontWeight: "bold",
@@ -83,7 +93,7 @@ export default function Herosec() {
       <article
         className="mrPhoto"
         style={{
-          flex: 1,
+          flex: "0 0 360px",
           display: "flex",
           justifyContent: "center",
         }}
@@ -103,6 +113,7 @@ export default function Herosec() {
           <img src={photo} alt="no pic" width="320px" style={{ borderRadius: "8px" }} />
         </div>
       </article>
+      </div>
     </section>
   );
 }
