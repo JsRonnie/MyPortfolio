@@ -1,0 +1,170 @@
+import { useEffect, useState, useRef } from 'react';
+
+async function fetchZenQuote(signal) {
+  // Try local dev proxy first (vite server proxy). This avoids CORS during development.
+  try {
+  const resLocal = await fetch('/api/zenquotes?_=' + Date.now(), { signal });
+    if (resLocal.ok) {
+      const dataLocal = await resLocal.json();
+      if (Array.isArray(dataLocal) && dataLocal.length > 0) return { q: dataLocal[0].q, a: dataLocal[0].a };
+    }
+  } catch (e) {
+    // ignore and try public proxy
+  }
+
+  // Many browsers block direct requests to zenquotes due to CORS.
+  // Use AllOrigins proxy as a secondary fallback.
+  const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://zenquotes.io/api/random') + '&_=' + Date.now();
+  const res = await fetch(proxy, { signal });
+  if (!res.ok) throw new Error(`ZenQuotes (proxy) HTTP ${res.status}`);
+  const data = await res.json();
+  if (Array.isArray(data) && data.length > 0) return { q: data[0].q, a: data[0].a };
+  throw new Error('ZenQuotes returned unexpected data');
+}
+
+async function fetchQuotable(signal) {
+  const res = await fetch('https://api.quotable.io/random?_=' + Date.now(), { signal });
+  if (!res.ok) throw new Error(`Quotable HTTP ${res.status}`);
+  const data = await res.json();
+  return { q: data.content, a: data.author };
+}
+
+export default function DailyQuote({ className, style }) {
+  const [quote, setQuote] = useState(null);
+  const [author, setAuthor] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [animKey, setAnimKey] = useState(0);
+  const controllerRef = useRef(null);
+  const retryRef = useRef(null);
+
+  async function doFetch() {
+    if (loading) return; // prevent overlapping fetches
+    if (controllerRef.current) {
+      try { controllerRef.current.abort(); } catch (e) { /* noop */ }
+    }
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setError(null);
+    setLoading(true);
+    try {
+      // Try ZenQuotes first
+      const z = await fetchZenQuote(controller.signal);
+      setQuote(z.q);
+      setAuthor(z.a || 'Unknown');
+      // cache successful quote
+      try { localStorage.setItem('dailyQuote', JSON.stringify({ q: z.q, a: z.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
+    } catch (err) {
+      // ignore aborts silently
+      if (err && err.name === 'AbortError') {
+        console.info('Fetch aborted');
+        setLoading(false);
+        return;
+      }
+      console.warn('ZenQuotes failed, falling back', err.message);
+      try {
+        const q = await fetchQuotable(controller.signal);
+        setQuote(q.q);
+        setAuthor(q.a || 'Unknown');
+        try { localStorage.setItem('dailyQuote', JSON.stringify({ q: q.q, a: q.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
+      } catch (err2) {
+        // If we hit a 429 (Too Many Requests) from the proxy or source, report it and do not retry immediately
+        const is429 = (err2 && err2.message && err2.message.includes('429')) || (err2 && err2.status === 429);
+        if (is429) {
+          console.warn('Rate limited (429) from quote source', err2);
+          setError('Rate limited; try again later');
+          setLoading(false);
+          return;
+        }
+        console.error('All quote sources failed', err2);
+        // If we have a cached quote, show it and display a milder error message
+        const cached = (() => {
+          try { return JSON.parse(localStorage.getItem('dailyQuote')); } catch (e) { return null; }
+        })();
+        if (cached && cached.q) {
+          setQuote(cached.q);
+          setAuthor(cached.a || 'Unknown');
+          setError('Using cached quote — live fetch failed.');
+        } else {
+          // Use a small built-in fallback list so the widget always shows something offline
+          const builtins = [
+            { q: 'Stay hungry. Stay foolish.', a: 'Steve Jobs' },
+            { q: 'The only limit to our realization of tomorrow is our doubts of today.', a: 'Franklin D. Roosevelt' },
+            { q: 'Do what you can, with what you have, where you are.', a: 'Theodore Roosevelt' },
+            { q: 'You miss 100% of the shots you don’t take.', a: 'Wayne Gretzky' }
+          ];
+          const pick = builtins[Math.floor(Math.random() * builtins.length)];
+          setQuote(pick.q);
+          setAuthor(pick.a);
+          setError('Showing offline fallback quote — live fetch failed.');
+        }
+
+        // schedule a single retry after 4s (but only if not rate-limited)
+        if (!retryRef.current && !(err2 && err2.message && err2.message.includes('429'))) {
+          retryRef.current = setTimeout(() => {
+            retryRef.current = null;
+            doFetch();
+          }, 4000);
+        }
+      }
+    } finally {
+      setLoading(false);
+      setAnimKey(k => k + 1); // trigger fade animation
+    }
+  }
+
+  useEffect(() => {
+    // show cached quote immediately if available
+    try {
+      const cached = JSON.parse(localStorage.getItem('dailyQuote'));
+      if (cached && cached.q) {
+        setQuote(cached.q);
+        setAuthor(cached.a || 'Unknown');
+      }
+    } catch (e) { /* ignore parse errors */ }
+
+    doFetch();
+    return () => {
+      if (controllerRef.current) controllerRef.current.abort();
+      if (retryRef.current) clearTimeout(retryRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className={className} style={{ ...(style || {}), maxWidth: 420 }}>
+      <div style={{ padding: '.9rem 1rem', borderRadius: 12, background: 'linear-gradient(180deg,#0f0f0f,#151515)', border: '1px solid #222', color: '#fff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h4 style={{ margin: 0, fontSize: '.95rem', color: '#d6f26a' }}>Daily Quote</h4>
+          <button
+            onClick={() => doFetch()}
+            aria-label="New Quote"
+            style={{
+              background: '#222',
+              color: '#d6f26a',
+              border: '1px solid #333',
+              padding: '.35rem .6rem',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontWeight: 600
+            }}
+          >
+            New
+          </button>
+        </div>
+
+        {loading && <p style={{ marginTop: '.6rem', color: '#bdbdbd' }}>Loading inspiration...</p>}
+        {error && <p style={{ marginTop: '.6rem', color: '#f77474' }}>{error}</p>}
+
+        <div style={{ transition: 'opacity .35s ease', opacity: loading ? 0.2 : 1 }} key={animKey}>
+          {!loading && !error && quote && (
+            <blockquote style={{ marginTop: '.6rem', marginBottom: 0, fontStyle: 'italic', color: '#e6e6e6' }}>
+              “{quote}”
+              <cite style={{ display: 'block', marginTop: '.5rem', textAlign: 'right', color: '#bdbdbd', fontWeight: 600 }}>— {author}</cite>
+            </blockquote>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
