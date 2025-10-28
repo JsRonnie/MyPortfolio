@@ -1,6 +1,7 @@
 // Prefer newpicture.jpg when available; fall back to mrRonnie.jpg
 // Vite will replace these with asset URLs at build time
-const assetMap = import.meta.glob('../assets/*', { eager: true, as: 'url' });
+// Use new Vite options: query + import to fetch the url string
+const assetMap = import.meta.glob('../assets/*', { eager: true, query: '?url', import: 'default' });
 const photo = assetMap['../assets/newpicture.jpg'] ?? assetMap['../assets/mrRonnie.jpg'];
 import DailyQuote from './DailyQuote';
 
