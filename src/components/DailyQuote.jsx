@@ -163,7 +163,7 @@ export default function DailyQuote({ className, style }) {
     <div className={className} style={{ ...(style || {}), maxWidth: 420 }}>
       <div style={{ padding: '.9rem 1rem', borderRadius: 12, background: 'linear-gradient(180deg,#0f0f0f,#151515)', border: '1px solid #222', color: '#fff', boxShadow: '0 10px 24px rgba(0,0,0,0.35)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h4 style={{ margin: 0, fontSize: '.95rem', color: '#d6f26a' }}>Daily Quote</h4>
+          <h4 style={{ margin: 0, fontSize: '.95rem', color: '#d6f26a' }}>Quote</h4>
           <button
             onClick={() => doFetch()}
             aria-label="New Quote"

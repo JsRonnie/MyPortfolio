@@ -59,7 +59,22 @@ body{
 }
 .navDiv .brand { font-weight:600; letter-spacing:.5px; text-decoration:none; color:#fff; }
 .navDiv ul { list-style:none; display:flex; gap:1.25rem; margin:0; padding:0; }
-.navDiv ul li a { text-decoration:none; color:#ddd; font-size:.9rem; letter-spacing:.5px; transition:color .2s; }
+.navDiv ul li a { text-decoration:none; color:#ddd; font-size:.9rem; letter-spacing:.5px; position:relative; transition: color .25s ease, text-shadow .35s ease; }
+.navDiv ul li a::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%) scaleX(.6);
+  transform-origin: center;
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg,#d6f26a,#b4d940);
+  box-shadow: 0 0 6px rgba(214,242,106,0);
+  opacity: 0;
+  transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease;
+}
 .navDiv ul li a:hover, .navDiv ul li a:focus { color:#d6f26a; }
 
 /* Active navigation link styling */
@@ -70,15 +85,8 @@ body{
   position: relative;
 }
 .navDiv ul li a.active-nav::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -6px;
-  transform: translateX(-50%);
-  width: 26px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg,#d6f26a,#b4d940);
+  opacity: 1;
+  transform: translateX(-50%) scaleX(1);
   box-shadow: 0 0 6px rgba(214,242,106,0.6);
 }
 
