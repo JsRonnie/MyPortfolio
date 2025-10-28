@@ -49,9 +49,10 @@ async function fetchQuotable(signal) {
   return { q: data.content, a: data.author };
 }
 
-async function fetchServerQuote(signal) {
+async function fetchServerQuote(signal, forceRefresh = false) {
   // Works on Vercel (serverless function). In local dev it may 404 and we will fall back.
-  const res = await fetch('/api/quote?rand=' + Date.now(), { signal, cache: 'no-store' });
+  const qp = forceRefresh ? 'refresh=1' : 'rand=' + Date.now();
+  const res = await fetch('/api/quote?' + qp, { signal, cache: 'no-store' });
   if (!res.ok) throw new Error(`Server quote HTTP ${res.status}`);
   const data = await res.json();
   if (data && data.q) return { q: data.q, a: data.a };
@@ -68,7 +69,7 @@ export default function DailyQuote({ className, style }) {
   const retryRef = useRef(null);
   const lastFetchRef = useRef(0);
 
-  async function doFetch() {
+  async function doFetch(forceRefresh = false) {
     if (loading) return; // prevent overlapping fetches
     // simple cooldown to reduce rate limits
     const now = Date.now();
@@ -83,8 +84,8 @@ export default function DailyQuote({ className, style }) {
     setLoading(true);
     const start = Date.now();
     try {
-      // Prefer our own server function in production for reliability
-      const s = await fetchServerQuote(controller.signal);
+  // Prefer our own server function in production for reliability
+  const s = await fetchServerQuote(controller.signal, forceRefresh);
       const elapsed = Date.now() - start;
       if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
       setQuote(s.q);
@@ -154,7 +155,7 @@ export default function DailyQuote({ className, style }) {
           if (!retryRef.current && !(err3 && err3.message && err3.message.includes('429'))) {
             retryRef.current = setTimeout(() => {
               retryRef.current = null;
-              doFetch();
+              doFetch(false);
             }, 4000);
           }
         }
@@ -189,7 +190,7 @@ export default function DailyQuote({ className, style }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h4 style={{ margin: 0, fontSize: '.95rem', color: '#d6f26a' }}>Quote</h4>
           <button
-            onClick={() => doFetch()}
+            onClick={() => doFetch(true)}
             aria-label="New Quote"
             style={{
               background: '#222',
