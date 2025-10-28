@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
+import { useRef } from 'react';
 import { FaHtml5, FaCss3Alt, FaReact, FaJava, FaPython, FaGithub, FaCode } from 'react-icons/fa';
 import { SiJavascript, SiTailwindcss, SiMysql, SiSupabase } from 'react-icons/si';
 
-// Map skill keys to icon components
+
 const iconMap = {
   HTML: FaHtml5,
   CSS: FaCss3Alt,
@@ -11,7 +12,7 @@ const iconMap = {
   JAVA: FaJava,
   PYTHON: FaPython,
   'TAILWIND CSS': SiTailwindcss,
-  // 'C#': SiCsharp is not exported in the installed react-icons build; using a generic code icon instead.
+  
   'C#': FaCode,
   GITHUB: FaGithub,
   MYSQL: SiMysql,
@@ -19,9 +20,22 @@ const iconMap = {
 };
 
 export default function Skills({ title = 'SKILLS & TOOLS', subtitle = 'Technologies I am learning and using.', skills = [] }) {
-  // Debug: log skills passed (remove later)
+
+  // Build a stable years map per mount so "random" values don't change every render
+  const yearsRef = useRef(null);
+  if (!yearsRef.current) {
+    const fixed = { HTML: 3, CSS: 3, JAVA: 4, MYSQL: 4 };
+    const map = {};
+    for (const s of skills) {
+      const key = s.label.toUpperCase();
+      if (fixed[key] != null) map[key] = fixed[key];
+      else map[key] = 1 + Math.floor(Math.random() * 2); // 1-2 years
+    }
+    yearsRef.current = map;
+  }
+
   if (typeof window !== 'undefined') {
-    // Only log once per mount
+
     if (!window.__loggedSkillsOnce) {
       console.log('Skills received:', skills.map(s => s.label));
       window.__loggedSkillsOnce = true;
@@ -55,6 +69,8 @@ export default function Skills({ title = 'SKILLS & TOOLS', subtitle = 'Technolog
         >
           {skills.map((s) => {
             const Icon = iconMap[s.label.toUpperCase()] || FaGithub;
+            const years = yearsRef.current[s.label.toUpperCase()] ?? 1;
+            const pct = Math.max(10, Math.min(100, Math.round((years / 4) * 100)));
             return (
               <motion.li
                 key={s.label}
@@ -74,11 +90,24 @@ export default function Skills({ title = 'SKILLS & TOOLS', subtitle = 'Technolog
                   cursor: 'default',
                   width: '100%',
                   maxWidth: '170px',
-                  justifyContent: 'flex-start'
+                  justifyContent: 'flex-start',
+                  flexDirection: 'column',
+                  alignItems: 'stretch'
                 }}
               >
-                <Icon size={26} color={s.color || '#d6f26a'} />
-                <span>{s.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem' }}>
+                  <Icon size={26} color={s.color || '#d6f26a'} />
+                  <span>{s.label}</span>
+                </div>
+                <div style={{ marginTop: '.5rem' }} aria-label={`${s.label} experience ${years} year${years>1?'s':''}`}>
+                  <div style={{ height: 6, background: '#222', borderRadius: 6, overflow: 'hidden', border: '1px solid #2a2a2a' }}>
+                    <div style={{ width: pct + '%', height: '100%', background: 'linear-gradient(90deg,#d6f26a,#b4d940)' }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                    <small style={{ color: '#aaa' }}>{years} yr{years>1?'s':''}</small>
+                    <small style={{ color: '#666' }}>max 4</small>
+                  </div>
+                </div>
               </motion.li>
             );
           })}
