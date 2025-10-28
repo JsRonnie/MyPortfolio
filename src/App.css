@@ -32,20 +32,9 @@ body{
   font-family: 'Bebas Neue', sans-serif;
   font-size: xx-large;
 }
-.mainbody {
-    margin-top: 100px;
-    margin-left: 80px;
-}
-.mainSec{
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;  
-    margin-right: 200px;
-    padding: 0 50px; 
-}
-.mrPhoto{
-    margin-top: 80px;
-}
+.mainbody { margin-top: 0; margin-left: 0; }
+.mainSec { display: block; margin-right: 0; padding: 0; }
+.mrPhoto{ margin-top: 0; }
 
 /* Fixed nav adjustments */
 .navDiv {
