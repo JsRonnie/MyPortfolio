@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 
 const MIN_DELAY_MS = 650; // ensure loading state is visible briefly for smoother UX
+const COOLDOWN_MS = 3000; // avoid spamming APIs when clicking fast
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -42,7 +43,7 @@ async function fetchZenQuote(signal) {
 }
 
 async function fetchQuotable(signal) {
-  const res = await fetch('https://api.quotable.io/random?_=' + Date.now(), { signal });
+  const res = await fetch('https://api.quotable.io/random?tags=inspirational|wisdom&_=' + Date.now(), { signal, cache: 'no-store' });
   if (!res.ok) throw new Error(`Quotable HTTP ${res.status}`);
   const data = await res.json();
   return { q: data.content, a: data.author };
@@ -56,9 +57,14 @@ export default function DailyQuote({ className, style }) {
   const [animKey, setAnimKey] = useState(0);
   const controllerRef = useRef(null);
   const retryRef = useRef(null);
+  const lastFetchRef = useRef(0);
 
   async function doFetch() {
     if (loading) return; // prevent overlapping fetches
+    // simple cooldown to reduce rate limits
+    const now = Date.now();
+    if (now - lastFetchRef.current < COOLDOWN_MS) return;
+    lastFetchRef.current = now;
     if (controllerRef.current) {
       try { controllerRef.current.abort(); } catch (e) { /* noop */ }
     }
@@ -68,14 +74,13 @@ export default function DailyQuote({ className, style }) {
     setLoading(true);
     const start = Date.now();
     try {
-      // Try ZenQuotes first
-      const z = await fetchZenQuote(controller.signal);
+      // Prefer Quotable first (more permissive), then ZenQuotes via proxy
+      const q1 = await fetchQuotable(controller.signal);
       const elapsed = Date.now() - start;
       if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
-      setQuote(z.q);
-      setAuthor(z.a || 'Unknown');
-      // cache successful quote
-      try { localStorage.setItem('dailyQuote', JSON.stringify({ q: z.q, a: z.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
+      setQuote(q1.q);
+      setAuthor(q1.a || 'Unknown');
+      try { localStorage.setItem('dailyQuote', JSON.stringify({ q: q1.q, a: q1.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
     } catch (err) {
       // ignore aborts silently
       if (err && err.name === 'AbortError') {
@@ -83,20 +88,20 @@ export default function DailyQuote({ className, style }) {
         setLoading(false);
         return;
       }
-      console.warn('ZenQuotes failed, falling back', err.message);
+      console.warn('Primary quote source failed, falling back', err.message);
       try {
-        const q = await fetchQuotable(controller.signal);
+        const z = await fetchZenQuote(controller.signal);
         const elapsed = Date.now() - start;
         if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
-        setQuote(q.q);
-        setAuthor(q.a || 'Unknown');
-        try { localStorage.setItem('dailyQuote', JSON.stringify({ q: q.q, a: q.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
+        setQuote(z.q);
+        setAuthor(z.a || 'Unknown');
+        try { localStorage.setItem('dailyQuote', JSON.stringify({ q: z.q, a: z.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
       } catch (err2) {
         // If we hit a 429 (Too Many Requests) from the proxy or source, report it and do not retry immediately
         const is429 = (err2 && err2.message && err2.message.includes('429')) || (err2 && err2.status === 429);
         if (is429) {
           console.warn('Rate limited (429) from quote source', err2);
-          setError('Rate limited; try again later');
+          setError('Rate limited; using a saved quote.');
           setLoading(false);
           return;
         }
@@ -110,7 +115,7 @@ export default function DailyQuote({ className, style }) {
           if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
           setQuote(cached.q);
           setAuthor(cached.a || 'Unknown');
-          setError('Using cached quote — live fetch failed.');
+          setError('Using saved quote — live fetch failed.');
         } else {
           // Use a small built-in fallback list so the widget always shows something offline
           const builtins = [
