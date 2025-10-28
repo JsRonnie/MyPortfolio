@@ -110,3 +110,24 @@ body { padding-top: 76px; }
   .mainSec { flex-direction: column; margin-right: 0; }
   .mainbody { margin-left: 0; }
 }
+
+/* Loading skeleton for quote */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+.skeleton {
+  background: #1b1b1b;
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.08), rgba(255,255,255,0));
+  background-size: 200px 100%;
+  animation: skeleton-shimmer 1.15s infinite linear;
+  opacity: .6;
+}
+.skeleton-quote { border: 1px solid #222; background: #151515; }

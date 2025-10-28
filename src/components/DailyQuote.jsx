@@ -1,12 +1,27 @@
 import { useEffect, useState, useRef } from 'react';
 
+const MIN_DELAY_MS = 650; // ensure loading state is visible briefly for smoother UX
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function isRateLimitQuote(obj) {
+  if (!obj) return false;
+  const t = String(obj.q || '').toLowerCase();
+  const a = String(obj.a || '').toLowerCase();
+  return t.includes('too many requests') || a.includes('zenquotes.io');
+}
+
 async function fetchZenQuote(signal) {
   // Try local dev proxy first (vite server proxy). This avoids CORS during development.
   try {
   const resLocal = await fetch('/api/zenquotes?_=' + Date.now(), { signal });
     if (resLocal.ok) {
       const dataLocal = await resLocal.json();
-      if (Array.isArray(dataLocal) && dataLocal.length > 0) return { q: dataLocal[0].q, a: dataLocal[0].a };
+      if (Array.isArray(dataLocal) && dataLocal.length > 0) {
+        const item = { q: dataLocal[0].q, a: dataLocal[0].a };
+        if (isRateLimitQuote(item)) throw new Error('ZenQuotes rate-limited content');
+        return item;
+      }
     }
   } catch (e) {
     // ignore and try public proxy
@@ -18,7 +33,11 @@ async function fetchZenQuote(signal) {
   const res = await fetch(proxy, { signal });
   if (!res.ok) throw new Error(`ZenQuotes (proxy) HTTP ${res.status}`);
   const data = await res.json();
-  if (Array.isArray(data) && data.length > 0) return { q: data[0].q, a: data[0].a };
+  if (Array.isArray(data) && data.length > 0) {
+    const item = { q: data[0].q, a: data[0].a };
+    if (isRateLimitQuote(item)) throw new Error('ZenQuotes rate-limited content');
+    return item;
+  }
   throw new Error('ZenQuotes returned unexpected data');
 }
 
@@ -47,9 +66,12 @@ export default function DailyQuote({ className, style }) {
     controllerRef.current = controller;
     setError(null);
     setLoading(true);
+    const start = Date.now();
     try {
       // Try ZenQuotes first
       const z = await fetchZenQuote(controller.signal);
+      const elapsed = Date.now() - start;
+      if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
       setQuote(z.q);
       setAuthor(z.a || 'Unknown');
       // cache successful quote
@@ -64,6 +86,8 @@ export default function DailyQuote({ className, style }) {
       console.warn('ZenQuotes failed, falling back', err.message);
       try {
         const q = await fetchQuotable(controller.signal);
+        const elapsed = Date.now() - start;
+        if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
         setQuote(q.q);
         setAuthor(q.a || 'Unknown');
         try { localStorage.setItem('dailyQuote', JSON.stringify({ q: q.q, a: q.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
@@ -82,6 +106,8 @@ export default function DailyQuote({ className, style }) {
           try { return JSON.parse(localStorage.getItem('dailyQuote')); } catch (e) { return null; }
         })();
         if (cached && cached.q) {
+          const elapsed = Date.now() - start;
+          if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
           setQuote(cached.q);
           setAuthor(cached.a || 'Unknown');
           setError('Using cached quote — live fetch failed.');
@@ -94,6 +120,8 @@ export default function DailyQuote({ className, style }) {
             { q: 'You miss 100% of the shots you don’t take.', a: 'Wayne Gretzky' }
           ];
           const pick = builtins[Math.floor(Math.random() * builtins.length)];
+          const elapsed = Date.now() - start;
+          if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
           setQuote(pick.q);
           setAuthor(pick.a);
           setError('Showing offline fallback quote — live fetch failed.');
@@ -133,7 +161,7 @@ export default function DailyQuote({ className, style }) {
 
   return (
     <div className={className} style={{ ...(style || {}), maxWidth: 420 }}>
-      <div style={{ padding: '.9rem 1rem', borderRadius: 12, background: 'linear-gradient(180deg,#0f0f0f,#151515)', border: '1px solid #222', color: '#fff' }}>
+      <div style={{ padding: '.9rem 1rem', borderRadius: 12, background: 'linear-gradient(180deg,#0f0f0f,#151515)', border: '1px solid #222', color: '#fff', boxShadow: '0 10px 24px rgba(0,0,0,0.35)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h4 style={{ margin: 0, fontSize: '.95rem', color: '#d6f26a' }}>Daily Quote</h4>
           <button
@@ -145,15 +173,21 @@ export default function DailyQuote({ className, style }) {
               border: '1px solid #333',
               padding: '.35rem .6rem',
               borderRadius: 8,
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
               fontWeight: 600
             }}
+            disabled={loading}
           >
             New
           </button>
         </div>
 
-        {loading && <p style={{ marginTop: '.6rem', color: '#bdbdbd' }}>Loading inspiration...</p>}
+        {loading && (
+          <div style={{ marginTop: '.6rem' }}>
+            <div className="skeleton skeleton-quote" style={{ height: 64, borderRadius: 8 }} />
+          </div>
+        )}
         {error && <p style={{ marginTop: '.6rem', color: '#f77474' }}>{error}</p>}
 
         <div style={{ transition: 'opacity .35s ease', opacity: loading ? 0.2 : 1 }} key={animKey}>

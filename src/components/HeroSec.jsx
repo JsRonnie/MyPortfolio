@@ -1,4 +1,7 @@
-import photo from "../assets/mrRonnie.jpg";
+// Prefer newpicture.jpg when available; fall back to mrRonnie.jpg
+// Vite will replace these with asset URLs at build time
+const assetMap = import.meta.glob('../assets/*', { eager: true, as: 'url' });
+const photo = assetMap['../assets/newpicture.jpg'] ?? assetMap['../assets/mrRonnie.jpg'];
 import DailyQuote from './DailyQuote';
 
 export default function Herosec() {
@@ -106,17 +109,30 @@ export default function Herosec() {
       >
         <div
           style={{
-            background: "#ccc",
-            borderRadius: "16px",
-            padding: "2rem",
+            background: "linear-gradient(180deg,#1b1b1b,#121212)",
+            border: "1px solid #222",
+            borderRadius: "18px",
+            padding: "1.25rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             minWidth: "100px",
             minHeight: "100px",
+            boxShadow: "0 14px 36px rgba(0,0,0,0.45)",
           }}
         >
-          <img src={photo} alt="no pic" width="320px" style={{ borderRadius: "8px" }} />
+          <img
+            src={photo}
+            alt="Profile"
+            width="320"
+            height="320"
+            style={{
+              borderRadius: "14px",
+              objectFit: "cover",
+              aspectRatio: "1 / 1",
+              boxShadow: "0 10px 24px rgba(0,0,0,0.5)",
+            }}
+          />
         </div>
       </article>
       </div>
