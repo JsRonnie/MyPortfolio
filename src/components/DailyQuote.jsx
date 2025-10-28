@@ -49,6 +49,15 @@ async function fetchQuotable(signal) {
   return { q: data.content, a: data.author };
 }
 
+async function fetchServerQuote(signal) {
+  // Works on Vercel (serverless function). In local dev it may 404 and we will fall back.
+  const res = await fetch('/api/quote?rand=' + Date.now(), { signal, cache: 'no-store' });
+  if (!res.ok) throw new Error(`Server quote HTTP ${res.status}`);
+  const data = await res.json();
+  if (data && data.q) return { q: data.q, a: data.a };
+  throw new Error('Server quote returned unexpected data');
+}
+
 export default function DailyQuote({ className, style }) {
   const [quote, setQuote] = useState(null);
   const [author, setAuthor] = useState(null);
@@ -74,13 +83,13 @@ export default function DailyQuote({ className, style }) {
     setLoading(true);
     const start = Date.now();
     try {
-      // Prefer Quotable first (more permissive), then ZenQuotes via proxy
-      const q1 = await fetchQuotable(controller.signal);
+      // Prefer our own server function in production for reliability
+      const s = await fetchServerQuote(controller.signal);
       const elapsed = Date.now() - start;
       if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
-      setQuote(q1.q);
-      setAuthor(q1.a || 'Unknown');
-      try { localStorage.setItem('dailyQuote', JSON.stringify({ q: q1.q, a: q1.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
+      setQuote(s.q);
+      setAuthor(s.a || 'Unknown');
+      try { localStorage.setItem('dailyQuote', JSON.stringify({ q: s.q, a: s.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
     } catch (err) {
       // ignore aborts silently
       if (err && err.name === 'AbortError') {
@@ -88,56 +97,66 @@ export default function DailyQuote({ className, style }) {
         setLoading(false);
         return;
       }
-      console.warn('Primary quote source failed, falling back', err.message);
+      console.warn('Server quote failed, falling back', err.message);
       try {
-        const z = await fetchZenQuote(controller.signal);
+        // Next try Quotable directly, then ZenQuotes via proxy
+        const q1 = await fetchQuotable(controller.signal);
         const elapsed = Date.now() - start;
         if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
-        setQuote(z.q);
-        setAuthor(z.a || 'Unknown');
-        try { localStorage.setItem('dailyQuote', JSON.stringify({ q: z.q, a: z.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
+        setQuote(q1.q);
+        setAuthor(q1.a || 'Unknown');
+        try { localStorage.setItem('dailyQuote', JSON.stringify({ q: q1.q, a: q1.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
       } catch (err2) {
-        // If we hit a 429 (Too Many Requests) from the proxy or source, report it and do not retry immediately
-        const is429 = (err2 && err2.message && err2.message.includes('429')) || (err2 && err2.status === 429);
-        if (is429) {
-          console.warn('Rate limited (429) from quote source', err2);
-          setError('Rate limited; using a saved quote.');
-          setLoading(false);
-          return;
-        }
-        console.error('All quote sources failed', err2);
-        // If we have a cached quote, show it and display a milder error message
-        const cached = (() => {
-          try { return JSON.parse(localStorage.getItem('dailyQuote')); } catch (e) { return null; }
-        })();
-        if (cached && cached.q) {
+        try {
+          const z = await fetchZenQuote(controller.signal);
           const elapsed = Date.now() - start;
           if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
-          setQuote(cached.q);
-          setAuthor(cached.a || 'Unknown');
-          setError('Using saved quote — live fetch failed.');
-        } else {
-          // Use a small built-in fallback list so the widget always shows something offline
-          const builtins = [
-            { q: 'Stay hungry. Stay foolish.', a: 'Steve Jobs' },
-            { q: 'The only limit to our realization of tomorrow is our doubts of today.', a: 'Franklin D. Roosevelt' },
-            { q: 'Do what you can, with what you have, where you are.', a: 'Theodore Roosevelt' },
-            { q: 'You miss 100% of the shots you don’t take.', a: 'Wayne Gretzky' }
-          ];
-          const pick = builtins[Math.floor(Math.random() * builtins.length)];
-          const elapsed = Date.now() - start;
-          if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
-          setQuote(pick.q);
-          setAuthor(pick.a);
-          setError('Showing offline fallback quote — live fetch failed.');
-        }
+          setQuote(z.q);
+          setAuthor(z.a || 'Unknown');
+          try { localStorage.setItem('dailyQuote', JSON.stringify({ q: z.q, a: z.a || 'Unknown', t: Date.now() })); } catch (e) { /* ignore */ }
+        } catch (err3) {
+          // If we hit a 429 (Too Many Requests) from the proxy or source, report it and do not retry immediately
+          const is429 = (err3 && err3.message && err3.message.includes('429')) || (err3 && err3.status === 429);
+          if (is429) {
+            console.warn('Rate limited (429) from quote source', err3);
+            setError('Rate limited; using a saved quote.');
+            setLoading(false);
+            return;
+          }
+          console.error('All quote sources failed', err3);
+          // If we have a cached quote, show it and display a milder error message
+          const cached = (() => {
+            try { return JSON.parse(localStorage.getItem('dailyQuote')); } catch (e) { return null; }
+          })();
+          if (cached && cached.q) {
+            const elapsed = Date.now() - start;
+            if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
+            setQuote(cached.q);
+            setAuthor(cached.a || 'Unknown');
+            setError('Using saved quote — live fetch failed.');
+          } else {
+            // Use a small built-in fallback list so the widget always shows something offline
+            const builtins = [
+              { q: 'Stay hungry. Stay foolish.', a: 'Steve Jobs' },
+              { q: 'The only limit to our realization of tomorrow is our doubts of today.', a: 'Franklin D. Roosevelt' },
+              { q: 'Do what you can, with what you have, where you are.', a: 'Theodore Roosevelt' },
+              { q: 'You miss 100% of the shots you don’t take.', a: 'Wayne Gretzky' }
+            ];
+            const pick = builtins[Math.floor(Math.random() * builtins.length)];
+            const elapsed = Date.now() - start;
+            if (elapsed < MIN_DELAY_MS) await sleep(MIN_DELAY_MS - elapsed);
+            setQuote(pick.q);
+            setAuthor(pick.a);
+            setError('Showing offline fallback quote — live fetch failed.');
+          }
 
-        // schedule a single retry after 4s (but only if not rate-limited)
-        if (!retryRef.current && !(err2 && err2.message && err2.message.includes('429'))) {
-          retryRef.current = setTimeout(() => {
-            retryRef.current = null;
-            doFetch();
-          }, 4000);
+          // schedule a single retry after 4s (but only if not rate-limited)
+          if (!retryRef.current && !(err3 && err3.message && err3.message.includes('429'))) {
+            retryRef.current = setTimeout(() => {
+              retryRef.current = null;
+              doFetch();
+            }, 4000);
+          }
         }
       }
     } finally {
