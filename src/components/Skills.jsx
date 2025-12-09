@@ -82,7 +82,6 @@ export default function Skills({ title = 'SKILLS & TOOLS', subtitle = 'Technolog
                   borderRadius: '14px',
                   padding: '1rem',
                   display: 'flex',
-                  alignItems: 'center',
                   gap: '.6rem',
                   fontWeight: 500,
                   fontSize: '.9rem',

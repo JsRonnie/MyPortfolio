@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 
+const DEFAULT_PROJECT_IMAGE = 'https://placehold.co/600x400/1b1b1b/FFFFFF?text=Project';
+
 // Projects section now supports real data (description, tech tags, badge) while still
 // falling back to three simple "Coming Soon" placeholders if no projects are passed.
 export default function Projects({ title = 'PROJECTS', subtitle = 'Highlighted recent work & ideas', projects = [] }) {
@@ -29,6 +31,7 @@ export default function Projects({ title = 'PROJECTS', subtitle = 'Highlighted r
         >
           {list.map(p => {
             const isPlaceholder = p.name === 'Coming Soon';
+            const preview = p.imageUrl || DEFAULT_PROJECT_IMAGE;
             return (
               <motion.article
                 key={p.id}
@@ -60,6 +63,17 @@ export default function Projects({ title = 'PROJECTS', subtitle = 'Highlighted r
                     borderRadius: '999px',
                     fontWeight: 600
                   }}>{p.badge}</span>
+                )}
+                {!isPlaceholder && (
+                  <div style={{
+                    width: '100%',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                    border: '1px solid #222',
+                    boxShadow: '0 10px 24px rgba(0,0,0,0.35)'
+                  }}>
+                    <img src={preview} alt={p.name} style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: '180px' }} />
+                  </div>
                 )}
                 <h3 style={{ margin: 0, fontSize: '1.18rem', fontWeight: 600, letterSpacing: '.5px', textAlign: 'center', width: '100%' }}>{p.name}</h3>
                 {!isPlaceholder && p.description && (

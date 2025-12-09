@@ -1,4 +1,43 @@
+import { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+
+const initialForm = { name: '', email: '', subject: '', message: '' };
+
 export default function ExperienceAndContact() {
+  const [form, setForm] = useState(initialForm);
+  const [status, setStatus] = useState({ state: 'idle', message: '' });
+
+  const handleChange = (evt) => {
+    const { name, value } = evt.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (evt) => {
+    evt.preventDefault();
+    if (!supabase) {
+      setStatus({ state: 'error', message: 'Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' });
+      return;
+    }
+    if (!form.name || !form.email || !form.message) {
+      setStatus({ state: 'error', message: 'Name, email, and message are required.' });
+      return;
+    }
+    setStatus({ state: 'loading', message: 'Sending...' });
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      subject: form.subject.trim(),
+      message: form.message.trim()
+    };
+    const { error } = await supabase.from('contact_messages').insert(payload);
+    if (error) {
+      setStatus({ state: 'error', message: error.message });
+    } else {
+      setStatus({ state: 'success', message: 'Message received! I will get back to you soon.' });
+      setForm(initialForm);
+    }
+  };
+
   return (
     <div id="experience" style={{ background: "#111", color: "#fff", fontFamily: "Inter, sans-serif" }}>
       {/* Experience Section */}
@@ -50,7 +89,7 @@ export default function ExperienceAndContact() {
             </a>
           </div>
         <div>
-          <form style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "500px" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "500px" }}>
             <label>
               Name
               <input type="text" style={{
@@ -61,7 +100,7 @@ export default function ExperienceAndContact() {
                 borderRadius: "6px",
                 color: "#fff",
                 marginTop: "0.25rem"
-              }} />
+              }} name="name" value={form.name} onChange={handleChange} required />
             </label>
             <label>
               Email
@@ -73,7 +112,7 @@ export default function ExperienceAndContact() {
                 borderRadius: "6px",
                 color: "#fff",
                 marginTop: "0.25rem"
-              }} />
+              }} name="email" value={form.email} onChange={handleChange} required />
             </label>
             <label>
               Subject
@@ -85,7 +124,7 @@ export default function ExperienceAndContact() {
                 borderRadius: "6px",
                 color: "#fff",
                 marginTop: "0.25rem"
-              }} />
+              }} name="subject" value={form.subject} onChange={handleChange} />
             </label>
             <label>
               Message
@@ -97,7 +136,7 @@ export default function ExperienceAndContact() {
                 borderRadius: "6px",
                 color: "#fff",
                 marginTop: "0.25rem"
-              }} />
+              }} name="message" value={form.message} onChange={handleChange} required />
             </label>
             <button type="submit" style={{
               background: "#d6f26a",
@@ -108,10 +147,16 @@ export default function ExperienceAndContact() {
               fontWeight: "bold",
               cursor: "pointer",
               marginTop: "1rem",
-              alignSelf: "flex-start"
-            }}>
-              SUBMIT
+              alignSelf: "flex-start",
+              opacity: status.state === 'loading' ? 0.6 : 1,
+            }} disabled={status.state === 'loading'}>
+              {status.state === 'loading' ? 'SENDING...' : 'SUBMIT'}
             </button>
+            {status.state !== 'idle' && (
+              <p style={{ color: status.state === 'error' ? '#f87171' : '#a7f3d0', margin: 0 }}>
+                {status.message}
+              </p>
+            )}
           </form>
         </div>
       </section>
