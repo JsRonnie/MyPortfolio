@@ -5,6 +5,7 @@ import AboutMe from "./components/AboutMeAndCapabilities";
 import ExperienceAndContact from "./components/ExperienceAndContact";
 import Skills from "./components/Skills";
 import Projects from "./components/Projects";
+import dabreederImage from "./assets/dabreeder.png";
 import { supabase } from "./lib/supabaseClient";
 import { useViewerTracker } from "./hooks/useViewerTracker";
 import './App.css'
@@ -32,26 +33,27 @@ function App() {
     {
       id: 'p1',
       name: 'Student Voting System',
-      description: 'A role-based campus voting platform allowing students to securely vote, with admin result dashboards and audit logs.',
-      tech: ['Java', 'MySQL', 'JDBC', 'Servlets'],
-      badge: 'JAVA / MYSQL',
+      description: 'A role-based campus voting platform built with HTML, CSS, Java, MySQL, and custom API endpoints for secure ballots and audit trails.',
+      tech: ['HTML', 'CSS', 'Java', 'MySQL', 'API'],
+      badge: 'FULL-STACK CAPSTONE',
       imageUrl: DEFAULT_PROJECT_IMAGE
     },
     {
       id: 'p2',
       name: 'Service Booking System',
-      description: 'Scheduling & reservation system supporting time slots, availability validation, and booking history tracking.',
-      tech: ['JavaScript', 'Node (optional)', 'Responsive UI'],
+      description: 'Scheduling & reservation system supporting time slots, availability validation, and booking history tracking built with HTML, CSS, MySQL, and Java.',
+      tech: ['HTML', 'CSS', 'MySQL', 'Java'],
       badge: 'BOOKING',
       imageUrl: DEFAULT_PROJECT_IMAGE
     },
     {
       id: 'p3',
       name: 'Dog Match (Physical Traits)',
-      description: 'Matches user preferences (size, coat, energy, temperament) to breeds using a trait scoring algorithm.',
-      tech: ['Data Filtering', 'Trait Scoring', 'UI'],
-      badge: 'MATCHING',
-      imageUrl: DEFAULT_PROJECT_IMAGE
+      description: 'Capstone DaBreeder pairs user preferences (size, coat, energy, temperament) to breeds using a trait scoring algorithm built with Supabase, Tailwind CSS, HTML, React.js, and JavaScript.',
+      tech: ['Supabase', 'Tailwind CSS', 'HTML', 'React.js', 'JavaScript'],
+      badge: 'DABREEDER CAPSTONE',
+      imageUrl: dabreederImage,
+      link: 'https://dabreeder.vercel.app/'
     }
   ]), []);
 
@@ -74,7 +76,8 @@ function App() {
           description: p.description ?? '',
           tech: p.tech_stack ?? [],
           badge: p.badge ?? (p.tech_stack?.[0] || ''),
-          imageUrl: p.image_url || DEFAULT_PROJECT_IMAGE
+          imageUrl: p.image_url || DEFAULT_PROJECT_IMAGE,
+          link: p.link ?? p.link_url ?? p.project_url ?? p.demo_url ?? ''
         }));
         setProjects(normalized);
       }

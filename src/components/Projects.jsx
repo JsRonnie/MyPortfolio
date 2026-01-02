@@ -32,6 +32,13 @@ export default function Projects({ title = 'PROJECTS', subtitle = 'Highlighted r
           {list.map(p => {
             const isPlaceholder = p.name === 'Coming Soon';
             const preview = p.imageUrl || DEFAULT_PROJECT_IMAGE;
+            const imageEl = (
+              <img
+                src={preview}
+                alt={p.name}
+                style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: '180px' }}
+              />
+            );
             return (
               <motion.article
                 key={p.id}
@@ -72,7 +79,16 @@ export default function Projects({ title = 'PROJECTS', subtitle = 'Highlighted r
                     border: '1px solid #222',
                     boxShadow: '0 10px 24px rgba(0,0,0,0.35)'
                   }}>
-                    <img src={preview} alt={p.name} style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: '180px' }} />
+                    {p.link ? (
+                      <a
+                        href={p.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'block' }}
+                      >
+                        {imageEl}
+                      </a>
+                    ) : imageEl}
                   </div>
                 )}
                 <h3 style={{ margin: 0, fontSize: '1.18rem', fontWeight: 600, letterSpacing: '.5px', textAlign: 'center', width: '100%' }}>{p.name}</h3>

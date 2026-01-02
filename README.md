@@ -57,6 +57,22 @@ npm run build
 npm run preview
 ```
 
+## 5. Deploying to Vercel
+
+Vercel needs a rewrite so every request (like `/admin`) falls back to `index.html` instead of returning a 404. The repo now ships `vercel.json` with a catch-all rewrite:
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+Steps:
+
+1. Push to GitHub with this file included.
+2. In Vercel, set the project Framework Preset to **Vite** (or leave "Other" and set `npm run build` / `dist`).
+3. Redeploy. Visiting `https://<your-app>.vercel.app/admin` will now serve the SPA correctly.
+
 ## Admin Dashboard Overview
 
 - Visit `/admin` locally or in production.
