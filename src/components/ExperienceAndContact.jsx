@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { WEB3FORM_NOTIFICATION_EMAIL } from '../lib/web3formConfig';
+import { WEB3FORM_ACCESS_KEY, WEB3FORM_NOTIFICATION_EMAIL } from '../lib/web3formConfig';
 
 const initialForm = { name: '', email: '', subject: '', message: '' };
-const WEB3FORMS_ENDPOINT = '/api/contact';
+const WEB3FORMS_ENDPOINT = 'https://api.web3forms.com/submit';
 const WEB3FORMS_SCRIPT_SRC = 'https://web3forms.com/client/script.js';
 
 export default function ExperienceAndContact() {
@@ -74,21 +74,19 @@ export default function ExperienceAndContact() {
     }
     setStatus({ state: 'loading', message: 'Sending...' });
     try {
-      const payload = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        subject: form.subject.trim(),
-        message: form.message.trim(),
-        captcha: captchaResponse
-      };
+      const formData = new FormData();
+      formData.append('access_key', WEB3FORM_ACCESS_KEY);
+      formData.append('name', form.name.trim());
+      formData.append('email', form.email.trim());
+      formData.append('subject', form.subject.trim());
+      formData.append('message', form.message.trim());
+      formData.append('h-captcha-response', captchaResponse);
+
       const response = await fetch(WEB3FORMS_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: formData
       });
-      let data;
-      const text = await response.text();
-      try { data = JSON.parse(text); } catch { data = { success: false, message: text || 'Unexpected response' }; }
+      const data = await response.json();
 
       if (data.success) {
         setStatus({ state: 'success', message: 'Message received! I will get back to you soon.' });
@@ -97,7 +95,7 @@ export default function ExperienceAndContact() {
         setStatus({ state: 'error', message: data.message || 'Something went wrong. Please try again.' });
       }
     } catch (error) {
-      setStatus({ state: 'error', message: 'Unable to send right now. Please try again or refresh.' });
+      setStatus({ state: 'error', message: 'Unable to reach Web3Forms. Please try again later.' });
     }
   };
 
@@ -157,6 +155,7 @@ export default function ExperienceAndContact() {
             onSubmit={handleSubmit}
             style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "500px" }}
           >
+            <input type="hidden" name="access_key" value={WEB3FORM_ACCESS_KEY} />
             <label>
               Name
               <input type="text" style={{
