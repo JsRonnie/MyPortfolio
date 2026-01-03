@@ -86,7 +86,9 @@ export default function ExperienceAndContact() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await response.json();
+      let data;
+      const text = await response.text();
+      try { data = JSON.parse(text); } catch { data = { success: false, message: text || 'Unexpected response' }; }
 
       if (data.success) {
         setStatus({ state: 'success', message: 'Message received! I will get back to you soon.' });
@@ -95,7 +97,7 @@ export default function ExperienceAndContact() {
         setStatus({ state: 'error', message: data.message || 'Something went wrong. Please try again.' });
       }
     } catch (error) {
-      setStatus({ state: 'error', message: 'Unable to reach Web3Forms. Please try again later.' });
+      setStatus({ state: 'error', message: 'Unable to send right now. Please try again or refresh.' });
     }
   };
 
