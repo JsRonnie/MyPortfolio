@@ -1,12 +1,14 @@
 // Vercel Serverless Function: Proxies Web3Forms without exposing your access key.
 // Set WEB3FORMS_ACCESS_KEY in your environment (Vercel Project Settings or local .env).
 
+import { WEB3FORMS_ACCESS_KEY as FALLBACK_KEY } from './web3forms.server.config.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ success: false, message: 'Method Not Allowed' });
     return;
   }
-  const ACCESS_KEY = process.env.WEB3FORMS_ACCESS_KEY;
+  const ACCESS_KEY = process.env.WEB3FORMS_ACCESS_KEY || FALLBACK_KEY;
   if (!ACCESS_KEY) {
     res.status(500).json({ success: false, message: 'Missing WEB3FORMS_ACCESS_KEY on server' });
     return;
