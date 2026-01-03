@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Header from "./components/Header";
 import Herosec from "./components/HeroSec";
 import AboutMe from "./components/AboutMeAndCapabilities";
@@ -6,15 +6,11 @@ import ExperienceAndContact from "./components/ExperienceAndContact";
 import Skills from "./components/Skills";
 import Projects from "./components/Projects";
 import dabreederImage from "./assets/dabreeder.png";
-import { supabase } from "./lib/supabaseClient";
-import { useViewerTracker } from "./hooks/useViewerTracker";
 import './App.css'
 
 const DEFAULT_PROJECT_IMAGE = 'https://placehold.co/600x400/111111/FFFFFF?text=Project';
 
 function App() {
-  useViewerTracker();
-
   const skills = useMemo(() => ([
     { label: 'HTML', color: '#e44d26' },
     { label: 'CSS', color: '#1572B6' },
@@ -29,7 +25,7 @@ function App() {
     { label: 'SUPABASE', color: '#4BEFA4' }
   ]), []);
 
-  const fallbackProjects = useMemo(() => ([
+  const projects = useMemo(() => ([
     {
       id: 'p1',
       name: 'Student Voting System',
@@ -57,45 +53,13 @@ function App() {
     }
   ]), []);
 
-  const [projects, setProjects] = useState(fallbackProjects);
-  const [projectsLoading, setProjectsLoading] = useState(Boolean(supabase));
-
-  useEffect(() => {
-    if (!supabase) return;
-    let ignore = false;
-    async function loadProjects() {
-      setProjectsLoading(true);
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('sort_order', { ascending: true });
-      if (!ignore && !error && Array.isArray(data) && data.length > 0) {
-        const normalized = data.map(p => ({
-          id: p.id,
-          name: p.title ?? 'Untitled Project',
-          description: p.description ?? '',
-          tech: p.tech_stack ?? [],
-          badge: p.badge ?? (p.tech_stack?.[0] || ''),
-          imageUrl: p.image_url || DEFAULT_PROJECT_IMAGE,
-          link: p.link ?? p.link_url ?? p.project_url ?? p.demo_url ?? ''
-        }));
-        setProjects(normalized);
-      }
-      setProjectsLoading(false);
-    }
-    loadProjects();
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
   return (
     <>
       <Header />
       <Herosec />
       <AboutMe />
       <Skills skills={skills} />
-      <Projects projects={projectsLoading ? [] : projects} />
+      <Projects projects={projects} />
       <ExperienceAndContact />
     </>
   );

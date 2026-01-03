@@ -1,11 +1,59 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { useEffect, useRef, useState } from 'react';
+import { WEB3FORM_NOTIFICATION_EMAIL } from '../lib/web3formConfig';
 
 const initialForm = { name: '', email: '', subject: '', message: '' };
+const WEB3FORMS_ENDPOINT = '/api/contact';
+const WEB3FORMS_SCRIPT_SRC = 'https://web3forms.com/client/script.js';
 
 export default function ExperienceAndContact() {
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState({ state: 'idle', message: '' });
+  const formRef = useRef(null);
+  const captchaRef = useRef(null);
+  const captchaIdRef = useRef(null);
+  const [isCaptchaReady, setCaptchaReady] = useState(false);
+  const contactEmail = (WEB3FORM_NOTIFICATION_EMAIL || 'kian.bungao@gmail.com').trim();
+  const contactEmailHref = contactEmail ? `mailto:${contactEmail}` : '#';
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    function markReady() {
+      setCaptchaReady(true);
+    }
+
+    let script = document.querySelector(`script[src="${WEB3FORMS_SCRIPT_SRC}"]`);
+    if (!script) {
+      script = document.createElement('script');
+      script.src = WEB3FORMS_SCRIPT_SRC;
+      script.async = true;
+      script.defer = true;
+      script.dataset.web3forms = 'true';
+      script.addEventListener('load', markReady);
+      document.body.appendChild(script);
+    } else if (window.hcaptcha) {
+      setCaptchaReady(true);
+    } else {
+      script.addEventListener('load', markReady);
+    }
+
+    return () => {
+      script?.removeEventListener('load', markReady);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isCaptchaReady || typeof window === 'undefined' || !window.hcaptcha || !captchaRef.current) return;
+    try {
+      if (captchaIdRef.current !== null) {
+        window.hcaptcha.reset(captchaIdRef.current);
+        return;
+      }
+      captchaIdRef.current = window.hcaptcha.render(captchaRef.current, { theme: 'dark' });
+    } catch (err) {
+      console.error('Failed to render hCaptcha', err);
+    }
+  }, [isCaptchaReady]);
 
   const handleChange = (evt) => {
     const { name, value } = evt.target;
@@ -14,27 +62,40 @@ export default function ExperienceAndContact() {
 
   const handleSubmit = async (evt) => {
     evt.preventDefault();
-    if (!supabase) {
-      setStatus({ state: 'error', message: 'Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' });
-      return;
-    }
     if (!form.name || !form.email || !form.message) {
       setStatus({ state: 'error', message: 'Name, email, and message are required.' });
       return;
     }
+    const captchaField = formRef.current?.querySelector('textarea[name="h-captcha-response"]');
+    const captchaResponse = captchaField?.value?.trim() || '';
+    if (!captchaResponse) {
+      setStatus({ state: 'error', message: 'Please complete the captcha before submitting.' });
+      return;
+    }
     setStatus({ state: 'loading', message: 'Sending...' });
-    const payload = {
-      name: form.name.trim(),
-      email: form.email.trim(),
-      subject: form.subject.trim(),
-      message: form.message.trim()
-    };
-    const { error } = await supabase.from('contact_messages').insert(payload);
-    if (error) {
-      setStatus({ state: 'error', message: error.message });
-    } else {
-      setStatus({ state: 'success', message: 'Message received! I will get back to you soon.' });
-      setForm(initialForm);
+    try {
+      const payload = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+        captcha: captchaResponse
+      };
+      const response = await fetch(WEB3FORMS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus({ state: 'success', message: 'Message received! I will get back to you soon.' });
+        setForm(initialForm);
+      } else {
+        setStatus({ state: 'error', message: data.message || 'Something went wrong. Please try again.' });
+      }
+    } catch (error) {
+      setStatus({ state: 'error', message: 'Unable to reach Web3Forms. Please try again later.' });
     }
   };
 
@@ -69,7 +130,7 @@ export default function ExperienceAndContact() {
       <section id="contact" style={{ display: "flex", flexDirection: 'column', gap: '1.5rem', padding: "2rem 2rem 4rem 2rem", maxWidth: '1100px', margin: '0 auto' }}>
         <h2 className="sectionTitle" style={{ fontSize: "3rem", fontWeight: "bold", letterSpacing: "2px", margin: 0 }}>LET’S CONNECT</h2>
           <p style={{ margin: "0.5rem 0 0.5rem 0", color: "#ccc" }}>
-            Say hello at <a href="mailto:kian.bungao@gmail.com" style={{ color: "#fff", textDecoration: "underline" }}>kian.bungao@gmail.com</a>
+            Say hello at <a href={contactEmailHref} style={{ color: "#fff", textDecoration: "underline" }}>{contactEmail}</a>
           </p>
           <p style={{ color: "#ccc", marginBottom: "1.5rem" }}>
             For more info, here's my <a href="#" style={{ color: "#fff", textDecoration: "underline" }}>resume</a>
@@ -89,7 +150,11 @@ export default function ExperienceAndContact() {
             </a>
           </div>
         <div>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "500px" }}>
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "500px" }}
+          >
             <label>
               Name
               <input type="text" style={{
@@ -138,6 +203,7 @@ export default function ExperienceAndContact() {
                 marginTop: "0.25rem"
               }} name="message" value={form.message} onChange={handleChange} required />
             </label>
+            <div ref={captchaRef} className="h-captcha" data-captcha="true" data-theme="dark" />
             <button type="submit" style={{
               background: "#d6f26a",
               color: "#222",
