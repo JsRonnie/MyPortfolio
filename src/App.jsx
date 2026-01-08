@@ -32,7 +32,7 @@ function App() {
       name: 'Student Voting System',
       description: 'A role-based campus voting platform built with React + Supabase, featuring admin, candidates, and voter roles; secure ballots; and live result tallies.',
       tech: ['React', 'Supabase', 'Role-based Access', 'Auth', 'RLS'],
-      badge: 'FULL-STACK CAPSTONE',
+      badge: 'VOTING SYSTEM',
       imageUrl: votingImage,
       link: 'https://studvote.vercel.app/'
     },
