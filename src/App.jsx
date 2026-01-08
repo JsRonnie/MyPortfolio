@@ -6,6 +6,7 @@ import ExperienceAndContact from "./components/ExperienceAndContact";
 import Skills from "./components/Skills";
 import Projects from "./components/Projects";
 import dabreederImage from "./assets/dabreeder.png";
+import votingImage from "./assets/voting.png";
 import './App.css'
 
 const DEFAULT_PROJECT_IMAGE = 'https://placehold.co/600x400/111111/FFFFFF?text=Project';
@@ -29,10 +30,11 @@ function App() {
     {
       id: 'p1',
       name: 'Student Voting System',
-      description: 'A role-based campus voting platform built with HTML, CSS, Java, MySQL, and custom API endpoints for secure ballots and audit trails.',
-      tech: ['HTML', 'CSS', 'Java', 'MySQL', 'API'],
+      description: 'A role-based campus voting platform built with React + Supabase, featuring admin, candidates, and voter roles; secure ballots; and live result tallies.',
+      tech: ['React', 'Supabase', 'Role-based Access', 'Auth', 'RLS'],
       badge: 'FULL-STACK CAPSTONE',
-      imageUrl: DEFAULT_PROJECT_IMAGE
+      imageUrl: votingImage,
+      link: 'https://studvote.vercel.app/'
     },
     {
       id: 'p2',

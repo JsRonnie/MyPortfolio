@@ -10,6 +10,7 @@ Animated single-page portfolio with a lightweight admin surface backed by Supaba
 - `/admin` route with a simple login (`admin` / `admin001`) that surfaces metrics, latest contact submissions, and full project CRUD
 - Project cards gracefully fall back to local data and a default image when Supabase is unavailable
 - SQL + storage provisioning script lives in `supabase/schema.sql`
+- Showcases a Full-Stack Capstone: Student Voting System (React + Supabase, role-based access) — https://studvote.vercel.app/
 
 ## Requirements
 
