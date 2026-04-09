@@ -7,53 +7,70 @@ import Skills from "./components/Skills";
 import Projects from "./components/Projects";
 import dabreederImage from "./assets/dabreeder.png";
 import votingImage from "./assets/voting.png";
-import './App.css'
+import "./App.css";
 
-const DEFAULT_PROJECT_IMAGE = 'https://placehold.co/600x400/111111/FFFFFF?text=Project';
+const DEFAULT_PROJECT_IMAGE = "https://placehold.co/600x400/111111/FFFFFF?text=Project";
 
 function App() {
-  const skills = useMemo(() => ([
-    { label: 'HTML', color: '#e44d26' },
-    { label: 'CSS', color: '#1572B6' },
-    { label: 'JAVASCRIPT', color: '#f7df1e' },
-    { label: 'REACT', color: '#61dafb' },
-    { label: 'TAILWIND CSS', color: '#38bdf8' },
-    { label: 'JAVA', color: '#f89820' },
-    { label: 'PYTHON', color: '#3776AB' },
-    { label: 'C#', color: '#9b4f96' },
-    { label: 'GITHUB', color: '#d6f26a' },
-    { label: 'MYSQL', color: '#11A6D3' },
-    { label: 'SUPABASE', color: '#4BEFA4' }
-  ]), []);
+  const skills = useMemo(
+    () => [
+      { label: "ASP.NET CORE WEB API", color: "#8b5cf6", category: "Backend", accent: "Core stack" },
+      { label: "C#", color: "#a78bfa", category: "Backend", accent: "Primary language" },
+      { label: "RESTFUL APIS", color: "#38bdf8", category: "Backend", accent: "API design" },
+      { label: "AUTHENTICATION & AUTHORIZATION", color: "#f59e0b", category: "Concepts", accent: "Security" },
+      { label: "ERROR HANDLING", color: "#fb7185", category: "Concepts", accent: "Reliability" },
+      { label: "LOGGING", color: "#4ade80", category: "Concepts", accent: "Observability" },
+      { label: "MICROSERVICES INTEGRATION", color: "#c084fc", category: "Concepts", accent: "System design" },
+      { label: "MYSQL", color: "#22d3ee", category: "Database", accent: "Data layer" },
+      { label: "POSTGRESQL", color: "#60a5fa", category: "Database", accent: "Relational" },
+      { label: "SQL SERVER", color: "#ef4444", category: "Database", accent: "Enterprise DB" },
+      { label: "SUPABASE", color: "#34d399", category: "Tools", accent: "BaaS" },
+      { label: "POSTMAN", color: "#fb923c", category: "Tools", accent: "API testing" },
+      { label: "SWAGGER", color: "#a3e635", category: "Tools", accent: "Docs" },
+      { label: "GIT", color: "#f97316", category: "Tools", accent: "Version control" },
+      { label: "GITHUB", color: "#e5e7eb", category: "Tools", accent: "Collaboration" },
+      { label: "REACT", color: "#61dafb", category: "Frontend", accent: "Interfaces" },
+      { label: "JAVASCRIPT", color: "#facc15", category: "Frontend", accent: "Client logic" },
+      { label: "HTML", color: "#f97316", category: "Frontend", accent: "Structure" },
+      { label: "CSS", color: "#38bdf8", category: "Frontend", accent: "Responsive UI" }
+    ],
+    []
+  );
 
-  const projects = useMemo(() => ([
-    {
-      id: 'p1',
-      name: 'Student Voting System',
-      description: 'A role-based campus voting platform built with React + Supabase, featuring admin, candidates, and voter roles; secure ballots; and live result tallies.',
-      tech: ['React', 'Supabase', 'Role-based Access', 'Auth', 'RLS'],
-      badge: 'VOTING SYSTEM',
-      imageUrl: votingImage,
-      link: 'https://studvote.vercel.app/'
-    },
-    {
-      id: 'p2',
-      name: 'Service Booking System',
-      description: 'Scheduling & reservation system supporting time slots, availability validation, and booking history tracking built with HTML, CSS, MySQL, and Java.',
-      tech: ['HTML', 'CSS', 'MySQL', 'Java'],
-      badge: 'BOOKING',
-      imageUrl: DEFAULT_PROJECT_IMAGE
-    },
-    {
-      id: 'p3',
-      name: 'Dog Match (Physical Traits)',
-      description: 'Capstone DaBreeder pairs user preferences (size, coat, energy, temperament) to breeds using a trait scoring algorithm built with Supabase, Tailwind CSS, HTML, React.js, and JavaScript.',
-      tech: ['Supabase', 'Tailwind CSS', 'HTML', 'React.js', 'JavaScript'],
-      badge: 'DABREEDER CAPSTONE',
-      imageUrl: dabreederImage,
-      link: 'https://dabreeder.vercel.app/'
-    }
-  ]), []);
+  const projects = useMemo(
+    () => [
+      {
+        id: "p1",
+        name: "Dog Match Platform",
+        description:
+          "Capstone full-stack web app for dog owners and breeders that evaluates compatibility using trait-based matching, role-aware access, messaging, and discussion features.",
+        tech: ["React", "Supabase", "PostgreSQL", "Authentication", "Role-based Access"],
+        badge: "CAPSTONE",
+        imageUrl: dabreederImage,
+        link: "https://dabreeder.vercel.app/"
+      },
+      {
+        id: "p2",
+        name: "Student Voting System",
+        description:
+          "Voting platform with role-based flows, ballot security, and live results. Built to practice frontend delivery while working with auth rules and structured data.",
+        tech: ["React", "Supabase", "RLS", "Auth", "Responsive UI"],
+        badge: "FULL STACK",
+        imageUrl: votingImage,
+        link: "https://studvote.vercel.app/"
+      },
+      {
+        id: "p3",
+        name: "Backend API Work",
+        description:
+          "ASP.NET Core Web API internship work focused on secure endpoints, JWT authentication, parameterized SQL queries, exception handling, logging, and service integration.",
+        tech: ["ASP.NET Core", "C#", "JWT", "MySQL", "REST APIs"],
+        badge: "INTERNSHIP",
+        imageUrl: DEFAULT_PROJECT_IMAGE
+      }
+    ],
+    []
+  );
 
   return (
     <>
@@ -67,4 +84,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
